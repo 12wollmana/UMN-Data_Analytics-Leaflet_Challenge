@@ -50,7 +50,7 @@ async function main(){
     const layerControl = L.control.layers(
         baseLayers, overlayLayers,
         {
-            collapsed: false
+            collapsed: true
         }
     );
     layerControl.addTo(map);
