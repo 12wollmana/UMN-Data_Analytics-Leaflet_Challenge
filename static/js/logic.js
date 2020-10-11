@@ -8,10 +8,16 @@
  * https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
  */
 const usgsGeoJSONs = {
-    allEarthquakesInPastSevenDays : "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson",
-    allEarthquakesInPastThirtyDays: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson",
-    allEarthquakesInPastHour: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson",
-    allEarthquakesInPastDay: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
+    allEarthquakesInPastSevenDays : 
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson",
+    allEarthquakesInPastThirtyDays: 
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson",
+    allEarthquakesInPastHour: 
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson",
+    allEarthquakesInPastDay: 
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+    significantEarthquakesInPastThirtyDays:
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson"
 };
 
 /**
