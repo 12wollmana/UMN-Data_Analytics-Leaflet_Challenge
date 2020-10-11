@@ -18,7 +18,7 @@ async function main(){
         "Satellite" : satelliteLayer
     };
 
-    const geoJSON = usgsGeoJSONs.allEarthquakesInPastDay;
+    const geoJSON = usgsGeoJSONs.allEarthquakesInPastSevenDays;
     const earthquakeLayer = 
         await createEarthquakeLayerFromGeoJSON(geoJSON);
     earthquakeLayer.addTo(map);
@@ -75,7 +75,6 @@ function createEarthquakeLayer(earthquakeData){
     }
 
     function pointToEarthquakeLayer(feature, latlng){
-        console.log("test");
         const earthquakeProperties = feature.properties;
         const earthquakeGeometry = feature.geometry;
 
@@ -83,15 +82,16 @@ function createEarthquakeLayer(earthquakeData){
         const coordinates = earthquakeGeometry.coordinates;
         const depth = coordinates[2];
 
-        const radius = magnitude * 5;
+        const magRadius = magnitude * 5;
+        const depthColor = calculateDepthColor(depth);
 
         return L.circleMarker(
             latlng, 
             {
-                radius: radius,
+                radius: magRadius,
                 color: "black",
                 weight: 1,
-                fillColor: "purple",
+                fillColor: depthColor,
                 fillOpacity: .5
             }
         );
@@ -106,6 +106,26 @@ function createEarthquakeLayer(earthquakeData){
     );
 
     return earthquakeLayer;
+}
+
+function calculateDepthColor(depth){
+    let color = "#fc1c03"
+    if(depth <= 10){
+        color = "#52fc03"
+    }
+    else if(depth <= 30){
+        color = "#befc03"
+    }
+    else if(depth <= 50){
+        color = "#f8fc03"
+    }
+    else if(depth <= 70){
+        color="#fcd703"
+    }
+    else if(depth <= 90){
+        color="#fc7b03"
+    }
+    return color;
 }
 
 function createMap(){
