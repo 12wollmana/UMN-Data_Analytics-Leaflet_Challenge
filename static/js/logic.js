@@ -3,10 +3,21 @@ const usgsGeoJSONs = {
     allEarthquakesInPastThirtyDays: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson",
     allEarthquakesInPastHour: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson",
     allEarthquakesInPastDay: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
+};
+
+const githubGeoJSONs = {
+    tectonicPlates: "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json"
 }
 
 const elements = {
     divMap : d3.select("#map")
+};
+
+const tileLayerColorSchemes = {
+    satellite: "mapbox/satellite-v9",
+    outdoors: "mapbox/outdoors-v11",
+    light: "mapbox/light-v10",
+    dark: "mapbox/dark-v10"
 }
 
 async function main(){
@@ -15,7 +26,10 @@ async function main(){
     const satelliteLayer = createSatelliteLayer();
     satelliteLayer.addTo(map);
     const baseLayers = {
-        "Satellite" : satelliteLayer
+        "Satellite" : satelliteLayer,
+        "Outdoors" : createOutdoorLayer(),
+        "Light" : createTileLayer(tileLayerColorSchemes.light),
+        "Dark" : createTileLayer(tileLayerColorSchemes.dark)
     };
 
     const geoJSON = usgsGeoJSONs.allEarthquakesInPastSevenDays;
@@ -23,8 +37,14 @@ async function main(){
         await createEarthquakeLayerFromGeoJSON(geoJSON);
     earthquakeLayer.addTo(map);
     earthquakeScale.addTo(map);
+
+    const tectonicPlateLayer = 
+        await createTectonicPlateLayerFromGeoJSON
+            (githubGeoJSONs.tectonicPlates);
+
     const overlayLayers = {
-        "Earthquakes": earthquakeLayer
+        "Earthquakes": earthquakeLayer,
+        "Tectonic Plates": tectonicPlateLayer
     };
 
     const layerControl = L.control.layers(
@@ -37,6 +57,14 @@ async function main(){
 }
 
 function createSatelliteLayer(){
+    return createTileLayer(tileLayerColorSchemes.satellite);
+}
+
+function createOutdoorLayer(){
+    return createTileLayer(tileLayerColorSchemes.outdoors);
+}
+
+function createTileLayer(colorScheme){
     return L.tileLayer(
         "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
         {
@@ -44,10 +72,15 @@ function createSatelliteLayer(){
             tileSize: 512,
             maxZoom: 18,
             zoomOffset: -1,
-            id: "mapbox/satellite-v9",
+            id: colorScheme,
             accessToken: API_KEY
         }
       );
+}
+
+async function createTectonicPlateLayerFromGeoJSON(geoJSON){
+    const data = await d3.json(geoJSON);
+    return L.geoJson(data);
 }
 
 async function createEarthquakeLayerFromGeoJSON(geoJSON){
@@ -55,8 +88,7 @@ async function createEarthquakeLayerFromGeoJSON(geoJSON){
     return {
         layer : createEarthquakeLayer(data), 
         scale : createDepthScaleLegend(data)
-    }
-        ;
+    } ;
 }
 
 function createEarthquakeLayer(earthquakeData){
@@ -99,7 +131,7 @@ function createEarthquakeLayer(earthquakeData){
                 color: "black",
                 weight: 1,
                 fillColor: depthColor,
-                fillOpacity: .5
+                fillOpacity: .75
             }
         );
     }
@@ -131,7 +163,7 @@ function createMap(){
         divMap.node(), 
         {
             center: coordinatesUSA,
-            zoom: 2
+            zoom: 3
         }
     );
     
