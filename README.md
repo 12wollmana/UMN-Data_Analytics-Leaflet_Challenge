@@ -1,2 +1,6 @@
-# UMN-Data_Analytics-Leaflet_Challenge
-Homework #14 for the University of Minnesota's Data Analytics Bootcamp: Visualizing Data with Leaflet.
+# Visualizing Data with Leaflet
+This project implements the Leaflet library to display earthquake data.
+
+Data and starter code provided by the University of Minnesota.
+
+## How to Run
