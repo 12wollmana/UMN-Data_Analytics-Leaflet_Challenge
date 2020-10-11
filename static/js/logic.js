@@ -19,9 +19,10 @@ async function main(){
     };
 
     const geoJSON = usgsGeoJSONs.allEarthquakesInPastSevenDays;
-    const earthquakeLayer = 
+    const { layer: earthquakeLayer, scale: earthquakeScale } = 
         await createEarthquakeLayerFromGeoJSON(geoJSON);
     earthquakeLayer.addTo(map);
+    earthquakeScale.addTo(map);
     const overlayLayers = {
         "Earthquakes": earthquakeLayer
     };
@@ -51,7 +52,11 @@ function createSatelliteLayer(){
 
 async function createEarthquakeLayerFromGeoJSON(geoJSON){
     const data = await d3.json(geoJSON);
-    return createEarthquakeLayer(data);
+    return {
+        layer : createEarthquakeLayer(data), 
+        scale : createDepthScaleLegend(data)
+    }
+        ;
 }
 
 function createEarthquakeLayer(earthquakeData){
@@ -83,7 +88,9 @@ function createEarthquakeLayer(earthquakeData){
         const depth = coordinates[2];
 
         const magRadius = magnitude * 5;
-        const depthColor = calculateDepthColor(depth);
+        const {scaleMin, scaleMax} = 
+            calculateDepthScaleMinMax(earthquakeData);
+        const depthColor = calculateDepthColor(depth, scaleMax - scaleMin);
 
         return L.circleMarker(
             latlng, 
@@ -108,8 +115,12 @@ function createEarthquakeLayer(earthquakeData){
     return earthquakeLayer;
 }
 
-function calculateDepthColor(depth){
-    let color = perc2color((depth))
+function calculateDepthColor(depth, range){
+    if(depth < 0){
+        depth = 0;
+    }
+    const percent = 100 - ((depth / range) * 100);
+    const color = perc2color(percent);
     return color;
 }
 
@@ -125,6 +136,75 @@ function createMap(){
     );
     
     return map;
+}
+
+function createDepthScaleLegend(earthquakeData, intervals = 7){
+    const {labels, colors} = 
+        calculateScale(earthquakeData, intervals);
+    console.log(colors);
+    const legend = L.control({position: "bottomright"});
+    legend.onAdd = function(){
+        const div = L.DomUtil.create("div", "legend");
+        const legendInfo = 
+        (`
+            <h2>Earthquake Depth</h2>
+            <hr>
+            <div class="labels">
+                <div class="min">
+                    ${labels[0]}
+                </div>
+                <div class="max">
+                    ${labels[labels.length - 1]}
+                </div>
+            </div>
+        `);
+        div.innerHTML = legendInfo;
+        
+        let colorHTML = []
+        colors.forEach(color => {
+            colorHTML.push(
+                `<li style="background-color: ${color}"></li>`
+            );
+        });
+
+        div.innerHTML += `<ul>${colorHTML.join("")}</ul>`;
+        return div;
+    };
+    return legend;
+}
+
+function calculateDepthScaleMinMax(earthquakeData){
+    const earthquakeFeatures = earthquakeData.features;
+    const depths = earthquakeFeatures.map(
+        (feature)=>feature.geometry.coordinates[2]);
+
+    const minDepth = Math.min(...depths);
+    const maxDepth = Math.max(...depths);
+
+    const scaleMin = Math.floor(minDepth)
+    const scaleMax = Math.ceil(maxDepth);
+
+    return {scaleMin, scaleMax}
+}
+
+function calculateScale(earthquakeData, intervals){
+    const {scaleMin, scaleMax} = calculateDepthScaleMinMax(earthquakeData);
+
+    
+    const scaleRange = (scaleMax - scaleMin);
+    const scaleInvervals = scaleRange / (intervals - 1);
+
+    let labels = [];
+    let colors = [];
+    for (let i = scaleMin; i < scaleMax+scaleInvervals; i+=scaleInvervals){
+        labels.push(`${i.toFixed(1)}`);
+        colors.push(calculateDepthColor(i, scaleRange));
+    }
+
+    return {
+        labels: labels,
+        colors: colors
+    };
 }
 
 main();
