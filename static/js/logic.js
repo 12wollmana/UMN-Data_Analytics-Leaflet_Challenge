@@ -1,3 +1,12 @@
+/**
+ * Code for generating a Leaflet Map of Earthquakes.
+ * @author @12wollmana Aaron Wollman
+ */
+
+/**
+ * GeoJSONs from USGS
+ * https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
+ */
 const usgsGeoJSONs = {
     allEarthquakesInPastSevenDays : "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson",
     allEarthquakesInPastThirtyDays: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson",
@@ -5,14 +14,23 @@ const usgsGeoJSONs = {
     allEarthquakesInPastDay: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
 };
 
+/**
+ * GeoJSONs from Github
+ */
 const githubGeoJSONs = {
     tectonicPlates: "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json"
 }
 
+/**
+ * HTML elements from index.html
+ */
 const elements = {
     divMap : d3.select("#map")
 };
 
+/**
+ * Tile layer map color schemes.
+ */
 const tileLayerColorSchemes = {
     satellite: "mapbox/satellite-v9",
     outdoors: "mapbox/outdoors-v11",
@@ -20,6 +38,9 @@ const tileLayerColorSchemes = {
     dark: "mapbox/dark-v10"
 }
 
+/**
+ * Creates a Leaflet plot of Earthquake data.
+ */
 async function main(){
     const map = createMap();
 
@@ -56,14 +77,25 @@ async function main(){
     layerControl.addTo(map);
 }
 
+/**
+ * Creates a map layer of global satellite data.
+ */
 function createSatelliteLayer(){
     return createTileLayer(tileLayerColorSchemes.satellite);
 }
 
+/**
+ * Creates an outdoor map layer.
+ */
 function createOutdoorLayer(){
     return createTileLayer(tileLayerColorSchemes.outdoors);
 }
 
+/**
+ * Creates a map tile layer.
+ * @param {string} colorScheme 
+ * The tile layer color scheme.
+ */
 function createTileLayer(colorScheme){
     return L.tileLayer(
         "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
@@ -78,11 +110,21 @@ function createTileLayer(colorScheme){
       );
 }
 
+/**
+ * Creates a tectonic plate map layer from geoJSON data.
+ * @param {string} geoJSON 
+ * geoJSON URL or filepath.
+ */
 async function createTectonicPlateLayerFromGeoJSON(geoJSON){
     const data = await d3.json(geoJSON);
     return L.geoJson(data);
 }
 
+/**
+ * Creates an earthquake map layer from unloaded geoJSON data.
+ * @param {string} geoJSON 
+ * geoJSON URL or filepath.
+ */
 async function createEarthquakeLayerFromGeoJSON(geoJSON){
     const data = await d3.json(geoJSON);
     return {
@@ -91,8 +133,21 @@ async function createEarthquakeLayerFromGeoJSON(geoJSON){
     } ;
 }
 
+/**
+ * Creates an earthquake map layer from loaded geoJSON data.
+ * @param {any} earthquakeData 
+ * Loaded geoJSON data.
+ */
 function createEarthquakeLayer(earthquakeData){
 
+    /**
+     * Binds a popup to each feature on the earthquake
+     * map layer.   
+     * @param {any} feature 
+     * A geoJSON feature node.
+     * @param {any} layer 
+     * A Leaflet layer.
+     */
     function onEachEarthquakeFeature(feature, layer){
         const earthquakeProperties = feature.properties;
         const earthquakeGeometry = feature.geometry;
@@ -111,6 +166,14 @@ function createEarthquakeLayer(earthquakeData){
         `);
     }
 
+    /**
+     * Determines how each marker is
+     * displayed on the earthquake map layer.
+     * @param {any} feature 
+     * A geoJSON feature node.
+     * @param {any} layer 
+     * A Leaflet layer.
+     */
     function pointToEarthquakeLayer(feature, latlng){
         const earthquakeProperties = feature.properties;
         const earthquakeGeometry = feature.geometry;
@@ -147,6 +210,14 @@ function createEarthquakeLayer(earthquakeData){
     return earthquakeLayer;
 }
 
+/**
+ * Calculates the color for an 
+ * earthquake's depth.
+ * @param {number} depth 
+ * The depth to calculate.
+ * @param {number} range 
+ * The range of points (range = max - min)
+ */
 function calculateDepthColor(depth, range){
     if(depth < 0){
         depth = 0;
@@ -156,6 +227,9 @@ function calculateDepthColor(depth, range){
     return color;
 }
 
+/**
+ * Creates a Leaflet Map.
+ */
 function createMap(){
     const divMap = elements.divMap;
     const coordinatesUSA = ["39.8283", "-98.5791"];
@@ -170,6 +244,13 @@ function createMap(){
     return map;
 }
 
+/**
+ * Creates a legend for the depth color scale.
+ * @param {any} earthquakeData 
+ * Loaded geoJSON data.
+ * @param {*} intervals 
+ * The number of intervals for the scale.
+ */
 function createDepthScaleLegend(earthquakeData, intervals = 7){
     const {labels, colors} = 
         calculateScale(earthquakeData, intervals);
@@ -205,6 +286,11 @@ function createDepthScaleLegend(earthquakeData, intervals = 7){
     return legend;
 }
 
+/**
+ * Calculates the min and max depths.
+ * @param {any} earthquakeData 
+ * Loaded geoJSON data.
+ */
 function calculateDepthScaleMinMax(earthquakeData){
     const earthquakeFeatures = earthquakeData.features;
     const depths = earthquakeFeatures.map(
@@ -219,6 +305,14 @@ function calculateDepthScaleMinMax(earthquakeData){
     return {scaleMin, scaleMax}
 }
 
+/**
+ * Finds the color and labels for the 
+ * depth scale.
+ * @param {any} earthquakeData 
+ * Loaded geoJSON data.
+ * @param {number} intervals 
+ * The number of intervals for the scale.
+ */
 function calculateScale(earthquakeData, intervals){
     const {scaleMin, scaleMax} = calculateDepthScaleMinMax(earthquakeData);
 
