@@ -10,25 +10,28 @@ const elements = {
 }
 
 async function main(){
-    
-    const geoJSON = usgsGeoJSONs.allEarthquakesInPastDay;
-    const data = await d3.json(geoJSON);
-    const earthquakeLayer = createEarthquakeLayer(data);
+    const map = createMap();
 
     const satelliteLayer = createSatelliteLayer();
-
-    const initialLayers = [satelliteLayer, earthquakeLayer];
-    const map = createMap(initialLayers);
-
+    satelliteLayer.addTo(map);
     const baseLayers = {
         "Satellite" : satelliteLayer
     };
 
+    const geoJSON = usgsGeoJSONs.allEarthquakesInPastDay;
+    const earthquakeLayer = 
+        await createEarthquakeLayerFromGeoJSON(geoJSON);
+    earthquakeLayer.addTo(map);
     const overlayLayers = {
         "Earthquakes": earthquakeLayer
     };
 
-    const layerControl = L.control.layers(baseLayers, overlayLayers);
+    const layerControl = L.control.layers(
+        baseLayers, overlayLayers,
+        {
+            collapsed: false
+        }
+    );
     layerControl.addTo(map);
 }
 
@@ -44,6 +47,11 @@ function createSatelliteLayer(){
             accessToken: API_KEY
         }
       );
+}
+
+async function createEarthquakeLayerFromGeoJSON(geoJSON){
+    const data = await d3.json(geoJSON);
+    return createEarthquakeLayer(data);
 }
 
 function createEarthquakeLayer(earthquakeData){
@@ -93,15 +101,14 @@ function createEarthquakeLayer(earthquakeData){
     return earthquakeLayer;
 }
 
-function createMap(initialLayers){
+function createMap(){
     const divMap = elements.divMap;
     const coordinatesUSA = ["39.8283", "-98.5791"];
     const map = L.map(
         divMap.node(), 
         {
             center: coordinatesUSA,
-            zoom: 2,
-            layers: initialLayers
+            zoom: 2
         }
     );
     
