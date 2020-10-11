@@ -109,22 +109,7 @@ function createEarthquakeLayer(earthquakeData){
 }
 
 function calculateDepthColor(depth){
-    let color = "#fc1c03"
-    if(depth <= 10){
-        color = "#52fc03"
-    }
-    else if(depth <= 30){
-        color = "#befc03"
-    }
-    else if(depth <= 50){
-        color = "#f8fc03"
-    }
-    else if(depth <= 70){
-        color="#fcd703"
-    }
-    else if(depth <= 90){
-        color="#fc7b03"
-    }
+    let color = perc2color((depth))
     return color;
 }
 
