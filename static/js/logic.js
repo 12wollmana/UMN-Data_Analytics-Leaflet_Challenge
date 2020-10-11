@@ -68,32 +68,39 @@ function createEarthquakeLayer(earthquakeData){
         layer.bindPopup(`
             <h3>${title}</h3>
             <hr>
-            Magnitude: ${magnitude}
+            Magnitude ${magnitude.toPrecision(2)}
             <br>
-            Depth: ${depth}
+            Depth: ${depth.toPrecision(3)} kilometers
         `);
     }
 
-    // function styleEachEarthquakeFeature(feature){
-    //     const earthquakeProperties = feature.properties;
-    //     const earthquakeGeometry = feature.geometry;
+    function pointToEarthquakeLayer(feature, latlng){
+        console.log("test");
+        const earthquakeProperties = feature.properties;
+        const earthquakeGeometry = feature.geometry;
 
-    //     const magnitude = earthquakeProperties.mag;
-    //     const coordinates = earthquakeGeometry.coordinates;
-    //     const depth = coordinates[2];
+        const magnitude = earthquakeProperties.mag;
+        const coordinates = earthquakeGeometry.coordinates;
+        const depth = coordinates[2];
 
-    //     return {
-    //         color: "black",
-    //         fillColor: "purple",
-    //         fillOpacity: 0.5,
-    //         weight: 1.5
-    //     };
-    // }
+        const radius = magnitude * 5;
+
+        return L.circleMarker(
+            latlng, 
+            {
+                radius: radius,
+                color: "black",
+                weight: 1,
+                fillColor: "purple",
+                fillOpacity: .5
+            }
+        );
+    }
 
     const earthquakeLayer = L.geoJson(
         earthquakeData, 
         {
-            // style: styleEachEarthquakeFeature,
+            pointToLayer: pointToEarthquakeLayer,
             onEachFeature: onEachEarthquakeFeature,
         }
     );
